@@ -1,6 +1,7 @@
 package Othello;
 
 import java.util.InputMismatchException;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Game {
@@ -28,13 +29,13 @@ public class Game {
 	 */
 	public static void main(String[] args) {
 		long startTime = System.currentTimeMillis();
-		
+
 		Game game = new Game();
 		game.setUp();
-		
-		long endTime   = System.currentTimeMillis();
+
+		long endTime = System.currentTimeMillis();
 		double totalTime = endTime - startTime;
-		System.out.println("\nGame Time: " + totalTime/1000 + " seconds");
+		System.out.println("\nGame Time: " + totalTime / 1000 + " seconds");
 	}
 
 	/**
@@ -57,14 +58,13 @@ public class Game {
 
 		// startTurn;
 		playerTurn();
-		
+
 		// this code is only reached after the game is over.
 		currentBoardView();
 		System.out.println("GAME OVER");
-		if(currentToken == BLACK) {
+		if (currentToken == BLACK) {
 			System.out.print("WHITE WINS!!!");
-		}
-		else {
+		} else {
 			System.out.print("BLACK WINS!!!");
 		}
 		System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
@@ -380,6 +380,16 @@ public class Game {
 				return false;
 			}
 		}
-
 	}
+
+	public void randomCPULocation() {
+		// generate instance of random.
+		Random rand = new Random();
+
+		// generate random column location
+		inputColumn = rand.nextInt(8);
+		// generate random row location
+		inputRow = rand.nextInt(8);
+	}
+
 }
