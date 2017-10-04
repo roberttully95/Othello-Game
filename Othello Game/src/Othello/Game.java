@@ -46,8 +46,8 @@ public class Game {
 			}
 		}
 		// Hard code 4 initial tokens on to board.
-		board[4][4] = board[3][3] = BLACK;
-		board[3][4] = board[4][3] = WHITE;
+		board[4][4] = board[3][4] = board[2][4] = BLACK;
+		board[4][3] = board[3][3] = board[2][3] = WHITE;
 
 		// startTurn;
 		playerTurn();
@@ -82,6 +82,7 @@ public class Game {
 		// place token on board.
 		placeToken();
 		switchPlayer();
+	
 		while (isAMovePossible() == true) {
 			playerTurn();
 		}
@@ -168,36 +169,13 @@ public class Game {
 		return;
 	}
 
-	public boolean isCellValid(int column, int row) {
-		// cycle through all adjacent cells.
-		for (int r = -1; r <= 1; r++) {
-			for (int c = -1; c <= 1; c++) {
-				// if a single adjacent cell is valid, return true.
-				if (shouldIFlip = false) {
-					if (isAdjacentValid(column, row, c, r) == true) {
-						return true;
-					}
-					else
-						return false;
-				}
-				else {
-					if (isAdjacentValid(column, row, c, r) == true) {
-						
-					}
-				}
-			}
-		}
-		// if all adjacent cell are invalid, return false
-		return false;
-	}
-
 	public boolean isAdjacentValid(int column, int row, int columnDirection, int rowDirection) {
 
 		// look at cell in a given location.
 		column = column + columnDirection;
 		row = row + rowDirection;
 
-		// first time round, token must be opoonent's.
+		// first time round, token must be opponent's.
 		while (count == 0) {
 			// return false if location is not on board.
 			if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
@@ -213,14 +191,14 @@ public class Game {
 			else if (board[column][row] == currentToken) {
 				return false;
 			}
-
+			
 			// return true if adjacent cell is opponent's token.
 			else {
 				count++;
 				return isAdjacentValid(column, row, columnDirection, rowDirection);
 			}
 		}
-
+		
 		// return false if location is not on board.
 		if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
 			count = 0;
@@ -326,4 +304,57 @@ public class Game {
 		return false;
 	}
 
+	public boolean isCellValid(int column, int row) {
+		// if we are just checking whether a move is valid, go through all adjacent
+		// cells. If one is valid, return true.
+
+		if (shouldIFlip == false) {
+			for (int r = -1; r <= 1; r++) {
+				for (int c = -1; c <= 1; c++) {
+					if (isAdjacentValid(column, row, c, r) == true) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		// if we want to flip the cells, we must go through all adjacent cells
+		// regardless of whether previous cells are valid or not.
+		// If one cell is valid, however, we must know.
+		else {
+			boolean validityCheck = false;
+			if (isAdjacentValid(column, row, -1, -1) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, -1, 0) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, -1, 1) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, 0, -1) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, 0, 1) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, 1, -1) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, 1, 0) == true) {
+				validityCheck = true;
+			}
+			if (isAdjacentValid(column, row, 1, 1) == true) {
+				validityCheck = true;
+			}
+
+			if (validityCheck == true) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+	}
 }
