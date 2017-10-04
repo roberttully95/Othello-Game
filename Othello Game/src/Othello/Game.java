@@ -46,11 +46,21 @@ public class Game {
 			}
 		}
 		// Hard code 4 initial tokens on to board.
-		board[4][4] = board[3][4] = board[2][4] = BLACK;
-		board[4][3] = board[3][3] = board[2][3] = WHITE;
+		board[4][4] = board[3][3] = BLACK;
+		board[4][3] = board[3][4] = WHITE;
 
 		// startTurn;
 		playerTurn();
+		
+		// this code is only reached after the game is over.
+		currentBoardView();
+		System.out.println("GAME OVER");
+		if(currentToken == BLACK) {
+			System.out.print("WHITE WINS!!!");
+		}
+		else {
+			System.out.print("BLACK WINS!!!");
+		}
 	}
 
 	/**
@@ -82,7 +92,7 @@ public class Game {
 		// place token on board.
 		placeToken();
 		switchPlayer();
-	
+
 		while (isAMovePossible() == true) {
 			playerTurn();
 		}
@@ -183,7 +193,7 @@ public class Game {
 			}
 
 			// return false if adjacent cell is empty.
-			if (board[column][row] == EMPTY) {
+			else if (board[column][row] == EMPTY) {
 				return false;
 			}
 
@@ -191,14 +201,14 @@ public class Game {
 			else if (board[column][row] == currentToken) {
 				return false;
 			}
-			
+
 			// return true if adjacent cell is opponent's token.
 			else {
 				count++;
 				return isAdjacentValid(column, row, columnDirection, rowDirection);
 			}
 		}
-		
+
 		// return false if location is not on board.
 		if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
 			count = 0;
@@ -223,6 +233,14 @@ public class Game {
 				return true;
 			}
 
+		}
+
+		// by this point, we know that the token is on the board and contains the
+		// opponents token. If both the directions are 0 we will get an infinite loop,
+		// so we get rid of this possibility.
+		else if (columnDirection == 0 && rowDirection == 0) {
+			count = 0;
+			return false;
 		}
 
 		// if adjacent cell is opponent's token.
