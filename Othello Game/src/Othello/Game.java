@@ -33,8 +33,8 @@ public class Game {
 		game.setUp();
 		
 		long endTime   = System.currentTimeMillis();
-		long totalTime = endTime - startTime;
-		System.out.println("\n\nGame Time: " + totalTime/1000 + " seconds.");
+		double totalTime = endTime - startTime;
+		System.out.println("\nGame Time: " + totalTime/1000 + " seconds");
 	}
 
 	/**
@@ -67,6 +67,7 @@ public class Game {
 		else {
 			System.out.print("BLACK WINS!!!");
 		}
+		System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 	}
 
 	/**
@@ -98,7 +99,7 @@ public class Game {
 		// place token on board.
 		placeToken();
 		switchPlayer();
-
+		noTurns++;
 		while (isAMovePossible() == true) {
 			playerTurn();
 		}
