@@ -27,8 +27,14 @@ public class Game {
 	 * @param args[]
 	 */
 	public static void main(String[] args) {
+		long startTime = System.currentTimeMillis();
+		
 		Game game = new Game();
 		game.setUp();
+		
+		long endTime   = System.currentTimeMillis();
+		long totalTime = endTime - startTime;
+		System.out.println("\n\nGame Time: " + totalTime/1000 + " seconds.");
 	}
 
 	/**
