@@ -16,6 +16,7 @@ public class Game {
 	int inputRow;
 	int count = 0;
 	int noTurns = 0;
+	boolean shouldIFlip = true;
 
 	// declaration of board array
 	private char board[][] = new char[BOARD_SIZE][BOARD_SIZE];
@@ -45,8 +46,8 @@ public class Game {
 			}
 		}
 		// Hard code 4 initial tokens on to board.
-		board[4][4] = board[3][3] = WHITE;
-		board[3][4] = board[4][3] = BLACK;
+		board[4][4] = board[3][3] = BLACK;
+		board[3][4] = board[4][3] = WHITE;
 
 		// startTurn;
 		playerTurn();
@@ -58,33 +59,33 @@ public class Game {
 	 */
 	public void playerTurn() {
 
-			// outputs the current board state.
-			currentBoardView();
+		// outputs the current board state.
+		currentBoardView();
 
-			// outputs which player's turn it currently is.
-			outputCurrentPlayer();
+		// outputs which player's turn it currently is.
+		outputCurrentPlayer();
 
-			// gets the desired cell location from user.
-			getUserInput();
+		// gets the desired cell location from user.
+		getUserInput();
 
-			// if user's desired cell is occupied, get new input.
-			while (isCellOccupied(inputColumn, inputRow) == true) {
-				System.out.println("This cell is occupied. Try Again.");
-				playerTurn();
-			}
-			// check if desired cell is valid.
-			while (isCellValid(inputColumn, inputRow) == false) {
-				System.out.println("Cell is not valid. Try again.");
-				playerTurn();
-			}
-
-			// place token on board.
-			placeToken();
-			switchPlayer();
-			while(isAMovePossible() == true) {
-				playerTurn();
-			}
+		// if user's desired cell is occupied, get new input.
+		while (isCellOccupied(inputColumn, inputRow) == true) {
+			System.out.println("This cell is occupied. Try Again.");
+			playerTurn();
 		}
+		// check if desired cell is valid.
+		while (isCellValid(inputColumn, inputRow) == false) {
+			System.out.println("Cell is not valid. Try again.");
+			playerTurn();
+		}
+
+		// place token on board.
+		placeToken();
+		switchPlayer();
+		while (isAMovePossible() == true) {
+			playerTurn();
+		}
+	}
 
 	/**
 	 * Outputs the view of the board at the time the call is made.
@@ -168,13 +169,21 @@ public class Game {
 	}
 
 	public boolean isCellValid(int column, int row) {
-
 		// cycle through all adjacent cells.
 		for (int r = -1; r <= 1; r++) {
 			for (int c = -1; c <= 1; c++) {
 				// if a single adjacent cell is valid, return true.
-				if (isAdjacentValid(column, row, c, r) == true) {
-					return true;
+				if (shouldIFlip = false) {
+					if (isAdjacentValid(column, row, c, r) == true) {
+						return true;
+					}
+					else
+						return false;
+				}
+				else {
+					if (isAdjacentValid(column, row, c, r) == true) {
+						
+					}
 				}
 			}
 		}
@@ -226,9 +235,16 @@ public class Game {
 
 		// if next token is yours, flip intermediate tokens.
 		else if (board[column][row] == currentToken) {
-			flipCells(column, row, columnDirection, rowDirection);
-			count = 0;
-			return true;
+			// only flip cells during move, and not when checking if a move is possible.
+			if (shouldIFlip == true) {
+				flipCells(column, row, columnDirection, rowDirection);
+				count = 0;
+				return true;
+			} else {
+				count = 0;
+				return true;
+			}
+
 		}
 
 		// if adjacent cell is opponent's token.
@@ -239,12 +255,27 @@ public class Game {
 
 	}
 
+	/**
+	 * Flips intermediate opponent cells if move is valid.
+	 * 
+	 * @param column
+	 *            column of placed token.
+	 * @param row
+	 *            row of placed token.
+	 * @param columnDirection
+	 *            column direction from placed token to flipped cells.
+	 * @param rowDirection
+	 *            row direction from placed token to flipped cells.
+	 */
 	public void flipCells(int column, int row, int columnDirection, int rowDirection) {
 		for (int i = 1; i <= count; i++) {
 			board[column - (columnDirection * i)][row - (rowDirection * i)] = currentToken;
 		}
 	}
 
+	/**
+	 * Switches the player's token from black to white / white to black.
+	 */
 	public void switchPlayer() {
 		if (currentToken == 'B') {
 			currentToken = 'W';
@@ -268,87 +299,31 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Determines whether there is a move possible on the board.
+	 * 
+	 * @return boolean
+	 */
 	public boolean isAMovePossible() {
+		// before we enter the isCellValid method, make sure that we do not flip cells
+		// while checking if a move is possible.
+		shouldIFlip = false;
+
 		// go through all cells on the board.
 		for (int r = 0; r < BOARD_SIZE; r++) {
 			for (int c = 0; c < BOARD_SIZE; c++) {
 				// if a single cell is valid, return true.
-				if (isMoveValid(c, r) == true) {
+				if (isCellValid(c, r) == true) {
+					// we can once again flip cells, now that we have checked if a move is possible.
+					shouldIFlip = true;
 					return true;
 				}
 			}
 		}
+		// we can once again flip cells, now that we have checked if a move is possible.
+		shouldIFlip = true;
 		// if no moves are possible, return false.
 		return false;
 	}
 
-	public boolean isAdjacentValidMove(int column, int row, int columnDirection, int rowDirection) {
-
-		// look at cell in a given location.
-		int newColumn = column + columnDirection;
-		int newRow = row + rowDirection;
-
-		// first time round, token must be opoonent's.
-		while (count == 0) {
-			// return false if location is not on board.
-			if (newRow >= BOARD_SIZE || newRow < 0 || newColumn >= BOARD_SIZE || newColumn < 0) {
-				return false;
-			}
-
-			// return false if adjacent cell is empty.
-			if (board[newColumn][newRow] == EMPTY) {
-				return false;
-			}
-
-			// return false if adjacent cell is same as current.
-			else if (board[newColumn][newRow] == currentToken) {
-				return false;
-			}
-
-			// return true if adjacent cell is opponent's token.
-			else {
-				count++;
-				return isAdjacentValid(newColumn, newRow, columnDirection, rowDirection);
-			}
-		}
-
-		// return false if location is not on board.
-		if (newRow >= BOARD_SIZE || newRow < 0 || newColumn >= BOARD_SIZE || newColumn < 0) {
-			count = 0;
-			return false;
-		}
-
-		// return false if adjacent cell is empty.
-		if (board[newColumn][newRow] == EMPTY) {
-			count = 0;
-			return false;
-		}
-
-		// if next token is different to previous, move is valid.
-		else if (board[newColumn][newRow] != currentToken) {
-			count = 0;
-			return true;
-		}
-
-		// if adjacent cell the same, keep going.
-		else {
-			count++;
-			return isAdjacentValid(newColumn, newRow, columnDirection, rowDirection);
-		}
-	}
-
-	public boolean isMoveValid(int column, int row) {
-
-		// cycle through all adjacent cells.
-		for (int r = -1; r <= 1; r++) {
-			for (int c = -1; c <= 1; c++) {
-				// if a single adjacent cell is valid, return true.
-				if (isAdjacentValidMove(column, row, c, r) == true) {
-					return true;
-				}
-			}
-		}
-		// if all adjacent cell are invalid, return false
-		return false;
-	}
 }
