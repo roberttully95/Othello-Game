@@ -54,7 +54,7 @@ public class Game {
 		// Hard code 4 initial tokens on to board.
 		board[4][4] = board[3][3] = BLACK;
 		board[4][3] = board[3][4] = WHITE;
-
+		
 		// startTurn;
 		playerTurn();
 
@@ -74,8 +74,10 @@ public class Game {
 			}
 			if (countBlack < 32) {
 				System.out.print("WHITE WINS!!!");
-			} else {
+			} else if (countBlack > 32) {
 				System.out.print("BLACK WINS!!!");
+			} else {
+				System.out.print("TIE GAME");
 			}
 		}
 
@@ -117,10 +119,10 @@ public class Game {
 		placeToken();
 		player1.switchPlayer();
 		noTurns++;
-		System.out.println("\n" + noTurns);
-		while (isAMovePossible() == true && noTurns <= 60) {
+		while (isAMovePossible() == true && noTurns < 60) {
 			playerTurn();
 		}
+		return;
 	}
 
 	/**
@@ -327,6 +329,9 @@ public class Game {
 		// cells. If one is valid, return true.
 
 		if (shouldIFlip == false) {
+			if(isCellOccupied(column, row) == true) {
+				return false;
+			}
 			for (int r = -1; r <= 1; r++) {
 				for (int c = -1; c <= 1; c++) {
 					if (isAdjacentValid(column, row, c, r) == true) {
