@@ -2,6 +2,7 @@ package Othello;
 
 public class Player {
 	
+	//first turn is black's.
 	char currentToken = 'B';
 	
 	/**
@@ -17,9 +18,6 @@ public class Player {
 
 	/**
 	 * Switches player and tells the user whose turn it is.
-	 * 
-	 * @param currentToken
-	 *            token corresponding to current player
 	 */
 	public void outputCurrentPlayer() {
 

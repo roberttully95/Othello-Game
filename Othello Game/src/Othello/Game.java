@@ -12,7 +12,6 @@ public class Game {
 	final char BLACK = 'B';
 	final char WHITE = 'W';
 	final char EMPTY = ' ';
-	char currentToken;
 	int inputColumn;
 	int inputRow;
 	int count = 0;
@@ -44,7 +43,7 @@ public class Game {
 	 */
 	private void setUp() {
 		// initialize variables
-		currentToken = BLACK;
+		player1.currentToken = BLACK;
 
 		// initialize array as empty
 		for (int i = 0; i < BOARD_SIZE; i++) {
@@ -62,7 +61,25 @@ public class Game {
 		// this code is only reached after the game is over.
 		currentBoardView();
 		System.out.println("GAME OVER");
-		if (currentToken == BLACK) {
+		// if the game ends with all board positions filled, winner is the player with
+		// more tokens.
+		if (noTurns == 60) {
+			int countBlack = 0;
+			for (int r = 0; r < BOARD_SIZE; r++) {
+				for (int c = 0; c < BOARD_SIZE; c++) {
+					if (board[c][r] == 'B') {
+						countBlack++;
+					}
+				}
+			}
+			if (countBlack < 32) {
+				System.out.print("WHITE WINS!!!");
+			} else {
+				System.out.print("BLACK WINS!!!");
+			}
+		}
+
+		else if (player1.currentToken == BLACK) {
 			System.out.print("WHITE WINS!!!");
 		} else {
 			System.out.print("BLACK WINS!!!");
@@ -80,7 +97,7 @@ public class Game {
 		currentBoardView();
 
 		// outputs which player's turn it currently is.
-		outputCurrentPlayer();
+		player1.outputCurrentPlayer();
 
 		// gets the desired cell location from user.
 		getUserInput();
@@ -98,9 +115,10 @@ public class Game {
 
 		// place token on board.
 		placeToken();
-		switchPlayer();
+		player1.switchPlayer();
 		noTurns++;
-		while (isAMovePossible() == true) {
+		System.out.println("\n" + noTurns);
+		while (isAMovePossible() == true && noTurns <= 60) {
 			playerTurn();
 		}
 	}
@@ -182,7 +200,7 @@ public class Game {
 	 * 
 	 */
 	public void placeToken() {
-		board[inputColumn][inputRow] = currentToken;
+		board[inputColumn][inputRow] = player1.currentToken;
 		return;
 	}
 
@@ -205,7 +223,7 @@ public class Game {
 			}
 
 			// return false if adjacent cell is same as current.
-			else if (board[column][row] == currentToken) {
+			else if (board[column][row] == player1.currentToken) {
 				return false;
 			}
 
@@ -229,7 +247,7 @@ public class Game {
 		}
 
 		// if next token is yours, flip intermediate tokens.
-		else if (board[column][row] == currentToken) {
+		else if (board[column][row] == player1.currentToken) {
 			// only flip cells during move, and not when checking if a move is possible.
 			if (shouldIFlip == true) {
 				flipCells(column, row, columnDirection, rowDirection);
@@ -272,34 +290,9 @@ public class Game {
 	 */
 	public void flipCells(int column, int row, int columnDirection, int rowDirection) {
 		for (int i = 1; i <= count; i++) {
-			board[column - (columnDirection * i)][row - (rowDirection * i)] = currentToken;
+			board[column - (columnDirection * i)][row - (rowDirection * i)] = player1.currentToken;
 		}
-	}
-
-	/**
-	 * Switches the player's token from black to white / white to black.
-	 */
-	public void switchPlayer() {
-		if (currentToken == 'B') {
-			currentToken = 'W';
-		} else {
-			currentToken = 'B';
-		}
-	}
-
-	/**
-	 * Switches player and tells the user whose turn it is.
-	 * 
-	 * @param currentToken
-	 *            token corresponding to current player
-	 */
-	public void outputCurrentPlayer() {
-
-		if (currentToken == 'B') {
-			System.out.println("Black's turn.");
-		} else {
-			System.out.println("White's turn.");
-		}
+		return;
 	}
 
 	/**
@@ -390,6 +383,8 @@ public class Game {
 		inputColumn = rand.nextInt(8);
 		// generate random row location
 		inputRow = rand.nextInt(8);
+
+		return;
 	}
 
 }
