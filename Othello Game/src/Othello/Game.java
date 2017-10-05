@@ -1,5 +1,10 @@
 package Othello;
 
+/*
+ * Make program skip outputting the current board view if an error is thrown.
+ * 
+ */
+
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
@@ -20,6 +25,7 @@ public class Game {
 	int count = 0;
 	int noTurns = 0;
 	boolean shouldIFlip = true;
+	boolean errorThrown = false;
 
 	// declaration of board array
 	private char board[][] = new char[BOARD_SIZE][BOARD_SIZE];
@@ -101,11 +107,15 @@ public class Game {
 	 */
 	public void playerTurn() {
 
-		// outputs the current board state.
-		currentBoardView();
-
-		// outputs which player's turn it currently is.
-		player1.outputCurrentPlayer();
+		// Outputs the current board state and the current player if there has not been an error thrown. This
+		// is because if there is an error, the board is the same as the last board.
+		// Doing this saves times.
+		if (errorThrown == false) {
+			currentBoardView();
+			player1.outputCurrentPlayer();
+		} else if (errorThrown == true) {
+			errorThrown = false;
+		}
 
 		// gets the desired cell location from user.
 		getUserInput();
@@ -113,11 +123,13 @@ public class Game {
 		// If desired cell is occupied, ask user to input again.
 		if (isCellOccupied(inputColumn, inputRow) == true) {
 			System.out.println("This cell is occupied. Try Again.");
+			errorThrown = true;
 			playerTurn();
 		}
 		// If desired cell is not valid, ask user to input again.
 		if (isCellValid(inputColumn, inputRow) == false) {
 			System.out.println("Cell is not valid. Try again.");
+			errorThrown = true;
 			playerTurn();
 		}
 
