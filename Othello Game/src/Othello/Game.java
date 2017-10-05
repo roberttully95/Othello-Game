@@ -1,5 +1,10 @@
 package Othello;
 
+/* Next:
+ * Incorporate cpu position generator into game.
+ * 
+ */
+
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
@@ -35,7 +40,7 @@ public class Game {
 		long startTime = System.currentTimeMillis();
 
 		Game game = new Game();
-		game.setUp();
+		game.play();
 
 		long endTime = System.currentTimeMillis();
 		double totalTime = endTime - startTime;
@@ -456,11 +461,56 @@ public class Game {
 		Random rand = new Random();
 
 		// generate random column location
-		inputColumn = rand.nextInt(8);
+		inputColumn = rand.nextInt(7);
 		// generate random row location
-		inputRow = rand.nextInt(8);
+		inputRow = rand.nextInt(7);
 
 		return;
+	}
+
+	public void play() {
+
+		if (gameType() == 1) {
+			setUp();
+		}
+
+	}
+
+	public int gameType() {
+
+		System.out.println(
+				"Welcome to Othello!\nThis game can be played: \n(1) vs. another player\n(2) vs. the computer or \n(3) as a Monte Carlo Simulation.\n");
+		System.out.println("Enter 1, 2 or 3 to decide how you want to play Othello!");
+		int gameType = getGameInput();
+		if (gameType == 1) {
+			System.out.println("You chose to play vs. another player. Good Luck!");
+		} else if (gameType == 2) {
+			System.out.println("You chose to play vs. the computer. Good Luck!");
+		} else {
+			System.out.println("You chose to run a Monte Carlo simulation, this could take a while..");
+		}
+		return gameType;
+	}
+
+	/**
+	 * 
+	 * @return Returns the type of game the user wants to play.
+	 */
+	public int getGameInput() {
+		int gameSelection = 0;
+		Scanner scan = new Scanner(System.in);
+		try {
+			gameSelection = scan.nextInt();
+			// if user gives input out of range, try again.
+			if (gameSelection > 3 || gameSelection < 1) {
+				System.out.println("ERROR.\nInput must be 1,2 or 3.");
+				getGameInput();
+			}
+		} catch (InputMismatchException e) {
+			System.out.print("\nI don't know what that was.. but try again. Enter 1, 2 or 3.");
+			getGameInput();
+		}
+		return gameSelection;
 	}
 
 }
