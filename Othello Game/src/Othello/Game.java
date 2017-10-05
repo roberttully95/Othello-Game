@@ -52,9 +52,10 @@ public class Game {
 			}
 		}
 
-		// Hard code 4 initial tokens on to board.
-		board[4][4] = board[3][3] = BLACK;
-		board[4][3] = board[3][4] = WHITE;
+		// Hard code 4 initial tokens on to board. Works if BOARD_SIZE is even or odd,
+		// since the numbers are truncated down for off BOARD_SIZEs.
+		board[BOARD_SIZE / 2][BOARD_SIZE / 2] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2 - 1] = BLACK;
+		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
 
 		// startTurn;
 		playerTurn();
@@ -65,7 +66,7 @@ public class Game {
 
 		// If game ends due to moves, winner is the player with
 		// more tokens.
-		if (noTurns == (BOARD_SIZE*BOARD_SIZE-4)) {
+		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 4)) {
 			int countBlack = 0;
 			for (int r = 0; r < BOARD_SIZE; r++) {
 				for (int c = 0; c < BOARD_SIZE; c++) {
@@ -77,7 +78,7 @@ public class Game {
 			// the winner is the player with most tokens on the board.
 			if (countBlack < 32) {
 				System.out.print("WHITE WINS!!!");
-			} else if (countBlack > BOARD_SIZE*BOARD_SIZE/2) {
+			} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
 				System.out.print("BLACK WINS!!!");
 			} else {
 				System.out.print("TIE GAME");
@@ -124,7 +125,7 @@ public class Game {
 		placeToken();
 		player1.switchPlayer();
 		noTurns++;
-		if (isAMovePossible() == true && noTurns <= (BOARD_SIZE*BOARD_SIZE-4)) {
+		if (isAMovePossible() == true && noTurns <= (BOARD_SIZE * BOARD_SIZE - 4)) {
 			System.out.println("\nTurn " + noTurns + ":");
 			playerTurn();
 		}
