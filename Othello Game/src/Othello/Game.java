@@ -65,7 +65,7 @@ public class Game {
 
 		// If game ends due to moves, winner is the player with
 		// more tokens.
-		if (noTurns == 60) {
+		if (noTurns == (BOARD_SIZE*BOARD_SIZE-4)) {
 			int countBlack = 0;
 			for (int r = 0; r < BOARD_SIZE; r++) {
 				for (int c = 0; c < BOARD_SIZE; c++) {
@@ -77,7 +77,7 @@ public class Game {
 			// the winner is the player with most tokens on the board.
 			if (countBlack < 32) {
 				System.out.print("WHITE WINS!!!");
-			} else if (countBlack > 32) {
+			} else if (countBlack > BOARD_SIZE*BOARD_SIZE/2) {
 				System.out.print("BLACK WINS!!!");
 			} else {
 				System.out.print("TIE GAME");
@@ -124,7 +124,7 @@ public class Game {
 		placeToken();
 		player1.switchPlayer();
 		noTurns++;
-		if (isAMovePossible() == true && noTurns <= 60) {
+		if (isAMovePossible() == true && noTurns <= (BOARD_SIZE*BOARD_SIZE-4)) {
 			System.out.println("\nTurn " + noTurns + ":");
 			playerTurn();
 		}
