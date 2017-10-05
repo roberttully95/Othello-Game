@@ -272,7 +272,7 @@ public class Game {
 		else if (board[column][row] == player1.currentToken) {
 			// only flip cells during move, and not when checking if a move is possible.
 			if (shouldIFlip == true) {
-				flipCells(column, row, columnDirection, rowDirection);
+				flipCells(column, row, columnDirection, rowDirection, count);
 				count = 0;
 				return true;
 			} else {
@@ -309,9 +309,11 @@ public class Game {
 	 *            column direction from placed token to flipped cells.
 	 * @param rowDirection
 	 *            row direction from placed token to flipped cells.
+	 * @param n
+	 *            number of flips that need to occur.
 	 */
-	public void flipCells(int column, int row, int columnDirection, int rowDirection) {
-		for (int i = 1; i <= count; i++) {
+	public void flipCells(int column, int row, int columnDirection, int rowDirection, int n) {
+		for (int i = 1; i <= n; i++) {
 			board[column - (columnDirection * i)][row - (rowDirection * i)] = player1.currentToken;
 		}
 		return;
