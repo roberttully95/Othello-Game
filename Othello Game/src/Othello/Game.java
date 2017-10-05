@@ -6,14 +6,17 @@ import java.util.Scanner;
 
 public class Game {
 
+	// creates an instance of the Player Class
 	Player player1 = new Player();
-
+	// sets fixed board size.
 	final int BOARD_SIZE = 8;
+	// sets token values.
 	final char BLACK = 'B';
 	final char WHITE = 'W';
 	final char EMPTY = ' ';
-	int inputColumn;
-	int inputRow;
+	// initialization of variables
+	int inputColumn = 0;
+	int inputRow = 0;
 	int count = 0;
 	int noTurns = 0;
 	boolean shouldIFlip = true;
@@ -42,26 +45,25 @@ public class Game {
 	 * 
 	 */
 	private void setUp() {
-		// initialize variables
-		player1.currentToken = BLACK;
-
 		// initialize array as empty
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
 				board[j][i] = EMPTY;
 			}
 		}
+
 		// Hard code 4 initial tokens on to board.
 		board[4][4] = board[3][3] = BLACK;
 		board[4][3] = board[3][4] = WHITE;
-		
+
 		// startTurn;
 		playerTurn();
 
 		// this code is only reached after the game is over.
 		currentBoardView();
 		System.out.println("GAME OVER");
-		// if the game ends with all board positions filled, winner is the player with
+
+		// If game ends due to moves, winner is the player with
 		// more tokens.
 		if (noTurns == 60) {
 			int countBlack = 0;
@@ -72,6 +74,7 @@ public class Game {
 					}
 				}
 			}
+			// the winner is the player with most tokens on the board.
 			if (countBlack < 32) {
 				System.out.print("WHITE WINS!!!");
 			} else if (countBlack > 32) {
@@ -81,6 +84,8 @@ public class Game {
 			}
 		}
 
+		// if game ends to to no possible moves only, then the current player is the
+		// loser.
 		else if (player1.currentToken == BLACK) {
 			System.out.print("WHITE WINS!!!");
 		} else {
@@ -104,13 +109,13 @@ public class Game {
 		// gets the desired cell location from user.
 		getUserInput();
 
-		// if user's desired cell is occupied, get new input.
-		while (isCellOccupied(inputColumn, inputRow) == true) {
+		// If desired cell is occupied, ask user to input again.
+		if (isCellOccupied(inputColumn, inputRow) == true) {
 			System.out.println("This cell is occupied. Try Again.");
 			playerTurn();
 		}
-		// check if desired cell is valid.
-		while (isCellValid(inputColumn, inputRow) == false) {
+		// If desired cell is not valid, ask user to input again.
+		if (isCellValid(inputColumn, inputRow) == false) {
 			System.out.println("Cell is not valid. Try again.");
 			playerTurn();
 		}
@@ -119,7 +124,8 @@ public class Game {
 		placeToken();
 		player1.switchPlayer();
 		noTurns++;
-		while (isAMovePossible() == true && noTurns < 60) {
+		if (isAMovePossible() == true && noTurns <= 60) {
+			System.out.println("\nTurn " + noTurns + ":");
 			playerTurn();
 		}
 		return;
@@ -178,7 +184,6 @@ public class Game {
 					"\nYou entered the cell location incorrectly:\nEnter the desired column and row, separated by a space.");
 			getUserInput();
 		}
-		return;
 	}
 
 	/**
@@ -206,6 +211,20 @@ public class Game {
 		return;
 	}
 
+	/**
+	 * For a given cell, determines whether there is a valid direction for a token
+	 * to be placed. If there is, it flips the intermediate tokens.
+	 * 
+	 * @param column
+	 *            column index for cell
+	 * @param row
+	 *            row index for cell
+	 * @param columnDirection
+	 *            column direction from original cell
+	 * @param rowDirection
+	 *            row direction from original cell
+	 * @return
+	 */
 	public boolean isAdjacentValid(int column, int row, int columnDirection, int rowDirection) {
 
 		// look at cell in a given location.
@@ -324,12 +343,19 @@ public class Game {
 		return false;
 	}
 
+	/**
+	 * Determines whether a proposed cell is a valid input.
+	 * 
+	 * @param column
+	 * @param row
+	 * @return boolean determines whether a proposed cell is a valid input
+	 */
 	public boolean isCellValid(int column, int row) {
 		// if we are just checking whether a move is valid, go through all adjacent
 		// cells. If one is valid, return true.
 
 		if (shouldIFlip == false) {
-			if(isCellOccupied(column, row) == true) {
+			if (isCellOccupied(column, row) == true) {
 				return false;
 			}
 			for (int r = -1; r <= 1; r++) {
@@ -380,6 +406,9 @@ public class Game {
 		}
 	}
 
+	/**
+	 * Generates a random board location for the cpu.
+	 */
 	public void randomCPULocation() {
 		// generate instance of random.
 		Random rand = new Random();

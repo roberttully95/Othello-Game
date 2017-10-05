@@ -2,7 +2,7 @@ package Othello;
 
 public class Player {
 	
-	//first turn is black's.
+	//first turn is black.
 	char currentToken = 'B';
 	
 	/**
