@@ -1,10 +1,5 @@
 package Othello;
 
-/*
- * Make program skip outputting the current board view if an error is thrown.
- * 
- */
-
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
@@ -26,6 +21,7 @@ public class Game {
 	int noTurns = 0;
 	boolean shouldIFlip = true;
 	boolean errorThrown = false;
+	boolean previousMovePassed = false;
 
 	// declaration of board array
 	private char board[][] = new char[BOARD_SIZE][BOARD_SIZE];
@@ -72,7 +68,7 @@ public class Game {
 
 		// If game ends due to moves, winner is the player with
 		// more tokens.
-		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 4)) {
+		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 3)) {
 			int countBlack = 0;
 			for (int r = 0; r < BOARD_SIZE; r++) {
 				for (int c = 0; c < BOARD_SIZE; c++) {
@@ -89,16 +85,18 @@ public class Game {
 			} else {
 				System.out.print("TIE GAME");
 			}
+			System.out.print("\n\nStatistics:\nTotal Moves: " + (noTurns - 1));
 		}
 
 		// if game ends to to no possible moves only, then the current player is the
 		// loser.
 		else if (player1.currentToken == BLACK) {
 			System.out.print("WHITE WINS!!!");
+			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 		} else {
 			System.out.print("BLACK WINS!!!");
+			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 		}
-		System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 	}
 
 	/**
@@ -107,28 +105,37 @@ public class Game {
 	 */
 	public void playerTurn() {
 
-		// Outputs the current board state and the current player if there has not been an error thrown. This
+		// if previous move has been passed, let the user know.
+		if (previousMovePassed == true) {
+			previousMovePassed = false;
+			System.out.println("\nNo moves available. Move automatically passed.");
+		}
+
+		// Outputs the current board state if there has not been
+		// an error thrown. This
 		// is because if there is an error, the board is the same as the last board.
 		// Doing this saves times.
 		if (errorThrown == false) {
 			currentBoardView();
-			player1.outputCurrentPlayer();
 		} else if (errorThrown == true) {
 			errorThrown = false;
 		}
+
+		// outputs current player.
+		player1.outputCurrentPlayer();
 
 		// gets the desired cell location from user.
 		getUserInput();
 
 		// If desired cell is occupied, ask user to input again.
 		if (isCellOccupied(inputColumn, inputRow) == true) {
-			System.out.println("This cell is occupied. Try Again.");
+			System.out.println("This cell is occupied. Try Again.\n");
 			errorThrown = true;
 			playerTurn();
 		}
 		// If desired cell is not valid, ask user to input again.
 		if (isCellValid(inputColumn, inputRow) == false) {
-			System.out.println("Cell is not valid. Try again.");
+			System.out.println("Cell is not valid. Try again.\n");
 			errorThrown = true;
 			playerTurn();
 		}
@@ -137,9 +144,29 @@ public class Game {
 		placeToken();
 		player1.switchPlayer();
 		noTurns++;
-		if (isAMovePossible() == true && noTurns <= (BOARD_SIZE * BOARD_SIZE - 4)) {
-			System.out.println("\nTurn " + noTurns + ":");
-			playerTurn();
+
+		// if the board is not full, then keep going.
+		if (noTurns < (BOARD_SIZE * BOARD_SIZE - 3)) {
+			// if next player's move is not possible, then it is the next player's turn
+			// (they pass).
+			if (isAMovePossible() == false) {
+				player1.switchPlayer();
+				// if next player cannot take a turn, then go back to the original player. They
+				// are the winner.
+				if (isAMovePossible() == false) {
+					player1.switchPlayer();
+				}
+				// if only one player cannot make a turn, then keep going.
+				else {
+					previousMovePassed = true;
+					playerTurn();
+				}
+			}
+			// if next player's move is possible, then keep going.
+			if (isAMovePossible() == true) {
+				System.out.println("\nTurn " + noTurns + ":");
+				playerTurn();
+			}
 		}
 		return;
 	}
