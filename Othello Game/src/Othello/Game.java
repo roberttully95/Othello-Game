@@ -1,16 +1,13 @@
 package Othello;
 
-/* Next:
- * Incorporate cpu position generator into game.
- * 
- */
+// In games 2 and 3, get a stack overflow exception due to random. 
+// (25th call of the random function, 50th element)
 
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Game {
-
 	// creates an instance of the Player Class
 	Player player1 = new Player();
 	// sets fixed board size.
@@ -20,6 +17,7 @@ public class Game {
 	final char WHITE = 'W';
 	final char EMPTY = ' ';
 	// initialization of variables
+	int gameSelection = 0;
 	int inputColumn = 0;
 	int inputRow = 0;
 	int count = 0;
@@ -51,7 +49,7 @@ public class Game {
 	 * Sets initial conditions for the game.
 	 * 
 	 */
-	private void setUp() {
+	private void initializeBoard() {
 		// initialize array as empty
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
@@ -63,117 +61,55 @@ public class Game {
 		// since the numbers are truncated down for off BOARD_SIZEs.
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2 - 1] = BLACK;
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
-
-		// startTurn;
-		playerTurn();
-
-		// this code is only reached after the game is over.
-		currentBoardView();
-		System.out.println("GAME OVER");
-
-		// If game ends due to moves, winner is the player with
-		// more tokens.
-		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 3)) {
-			int countBlack = 0;
-			for (int r = 0; r < BOARD_SIZE; r++) {
-				for (int c = 0; c < BOARD_SIZE; c++) {
-					if (board[c][r] == 'B') {
-						countBlack++;
-					}
-				}
-			}
-			// the winner is the player with most tokens on the board.
-			if (countBlack < 32) {
-				System.out.print("WHITE WINS!!!");
-			} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
-				System.out.print("BLACK WINS!!!");
-			} else {
-				System.out.print("TIE GAME");
-			}
-			System.out.print("\n\nStatistics:\nTotal Moves: " + (noTurns - 1));
-		}
-
-		// if game ends to to no possible moves only, then the current player is the
-		// loser.
-		else if (player1.currentToken == BLACK) {
-			System.out.print("WHITE WINS!!!");
-			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
-		} else {
-			System.out.print("BLACK WINS!!!");
-			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
-		}
 	}
 
 	/**
 	 * Current player's turn.
 	 * 
 	 */
-	public void playerTurn() {
-
+	public void enterGame() {
 		// if previous move has been passed, let the user know.
 		if (previousMovePassed == true) {
 			previousMovePassed = false;
 			System.out.println("\nNo moves available. Move automatically passed.");
 		}
 
-		// Outputs the current board state if there has not been
-		// an error thrown. This
-		// is because if there is an error, the board is the same as the last board.
-		// Doing this saves times.
-		if (errorThrown == false) {
-			currentBoardView();
-		} else if (errorThrown == true) {
-			errorThrown = false;
+		// Output current boards state if no error thrown.
+		// If there is an error, the board is the same as the last.
+		if (gameSelection == 1 || gameSelection == 2) {
+			if (errorThrown == false) {
+				currentBoardView();
+			} else if (errorThrown == true) {
+				errorThrown = false;
+			}
 		}
 
 		// outputs current player.
-		player1.outputCurrentPlayer();
-
-		// gets the desired cell location from user.
-		getUserInput();
-
-		// If desired cell is occupied, ask user to input again.
-		if (isCellOccupied(inputColumn, inputRow) == true) {
-			System.out.println("This cell is occupied. Try Again.\n");
-			errorThrown = true;
-			playerTurn();
+		if (gameSelection == 1) {
+			player1.outputCurrentPlayer();
+		} else if (gameSelection == 2) {
+			if (noTurns % 2 == 0) {
+				player1.outputCurrentPlayer();
+			}
 		}
-		// If desired cell is not valid, ask user to input again.
-		if (isCellValid(inputColumn, inputRow) == false) {
-			System.out.println("Cell is not valid. Try again.\n");
-			errorThrown = true;
-			playerTurn();
-		}
+
+		// get input from player or cpu.
+		getInputCell();
+
+		// check if cell is a valid entry
+		isInputValid();
 
 		// place token on board.
 		placeToken();
+
+		// switch player
 		player1.switchPlayer();
+
+		// increase number of teams
 		noTurns++;
 
-		// if the board is not full, then keep going.
-		if (noTurns < (BOARD_SIZE * BOARD_SIZE - 3)) {
-			// if next player's move is not possible, then it is the next player's turn
-			// (they pass).
-			if (isAMovePossible() == false) {
-				player1.switchPlayer();
-				// if next player cannot take a turn, then go back to the original player. They
-				// are the winner.
-				if (isAMovePossible() == false) {
-					player1.switchPlayer();
-				}
-				// if only one player cannot make a turn, then keep going.
-				else {
-					previousMovePassed = true;
-					playerTurn();
-				}
-			}
-			// if next player's move is possible, then keep going.
-			if (isAMovePossible() == true) {
-				System.out.println("\nTurn " + noTurns + ":");
-				playerTurn();
-			}
-		}
-		return;
+		// end the turn appropriately
+		endTurn();
 	}
 
 	/**
@@ -203,7 +139,7 @@ public class Game {
 			}
 			System.out.print("\n");
 		}
-		return;
+		System.out.print("\n");
 	}
 
 	/**
@@ -216,18 +152,18 @@ public class Game {
 		try {
 			inputColumn = sc.nextInt();
 			inputRow = sc.nextInt();
-			// if user gives input out of range, try again.
-			if (inputColumn > 8 || inputColumn < 1 || inputRow > 8 || inputRow < 1) {
-				System.out.print("ERROR.\nInputs must be between 1 and 8.");
-				getUserInput();
-			}
 			// decrease given input to match array index.
 			inputColumn--;
 			inputRow--;
+			// if user gives input out of range, try again.
+			if (inputColumn > BOARD_SIZE - 1 || inputColumn < 0 || inputRow > BOARD_SIZE - 1 || inputRow < 0) {
+				System.out.print("ERROR.\nInputs must be between 1 and 8.");
+				errorThrown = true;
+			}
 		} catch (InputMismatchException e) {
 			System.out.print(
 					"\nYou entered the cell location incorrectly:\nEnter the desired column and row, separated by a space.");
-			getUserInput();
+			errorThrown = true;
 		}
 	}
 
@@ -253,7 +189,6 @@ public class Game {
 	 */
 	public void placeToken() {
 		board[inputColumn][inputRow] = player1.currentToken;
-		return;
 	}
 
 	/**
@@ -456,7 +391,7 @@ public class Game {
 	/**
 	 * Generates a random board location for the cpu.
 	 */
-	public void randomCPULocation() {
+	public void getCPULocation() {
 		// generate instance of random.
 		Random rand = new Random();
 
@@ -464,32 +399,28 @@ public class Game {
 		inputColumn = rand.nextInt(7);
 		// generate random row location
 		inputRow = rand.nextInt(7);
-
-		return;
 	}
 
 	public void play() {
 
-		if (gameType() == 1) {
-			setUp();
-		}
+		initialTextOutput();
+		getGameTypeDecision();
+		initializeBoard();
+		enterGame();
+		postGameOutput();
 
 	}
 
-	public int gameType() {
+	public void getGameTypeDecision() {
+		gameSelection = getGameInput();
 
-		System.out.println(
-				"Welcome to Othello!\nThis game can be played: \n(1) vs. another player\n(2) vs. the computer or \n(3) as a Monte Carlo Simulation.\n");
-		System.out.println("Enter 1, 2 or 3 to decide how you want to play Othello!");
-		int gameType = getGameInput();
-		if (gameType == 1) {
-			System.out.println("You chose to play vs. another player. Good Luck!");
-		} else if (gameType == 2) {
-			System.out.println("You chose to play vs. the computer. Good Luck!");
+		if (gameSelection == 1) {
+			System.out.println("You chose to play vs. another player.");
+		} else if (gameSelection == 2) {
+			System.out.println("You chose to play vs. the computer.");
 		} else {
 			System.out.println("You chose to run a Monte Carlo simulation, this could take a while..");
 		}
-		return gameType;
 	}
 
 	/**
@@ -497,20 +428,136 @@ public class Game {
 	 * @return Returns the type of game the user wants to play.
 	 */
 	public int getGameInput() {
-		int gameSelection = 0;
 		Scanner scan = new Scanner(System.in);
 		try {
 			gameSelection = scan.nextInt();
 			// if user gives input out of range, try again.
 			if (gameSelection > 3 || gameSelection < 1) {
-				System.out.println("ERROR.\nInput must be 1,2 or 3.");
+				System.out.println("\nInput must be 1,2 or 3.");
 				getGameInput();
 			}
 		} catch (InputMismatchException e) {
-			System.out.print("\nI don't know what that was.. but try again. Enter 1, 2 or 3.");
+			System.out.println("\nI don't know what that was.. but try again. Enter 1, 2 or 3.");
 			getGameInput();
 		}
 		return gameSelection;
 	}
 
+	public void initialTextOutput() {
+		System.out.println("Welcome to Othello!");
+		System.out.println("This game can be played three ways: ");
+		System.out.println("1. Player vs. Player");
+		System.out.println("2. Player vs. CPU");
+		System.out.println("3. Monte Carlo Simulation\n");
+		System.out.println("Enter 1, 2, or 3 to decide how you want to play.");
+	}
+
+	public void postGameOutput() {
+		// outputs final board view
+		currentBoardView();
+
+		// If game ends with no board spaces remaining, count tokens.
+		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 3)) {
+			int countBlack = 0;
+			for (int r = 0; r < BOARD_SIZE; r++) {
+				for (int c = 0; c < BOARD_SIZE; c++) {
+					if (board[c][r] == 'B') {
+						countBlack++;
+					}
+				}
+			}
+			// the winner is the player with most tokens on the board.
+			if (countBlack < 32) {
+				System.out.print("GAME OVER\nWHITE WINS!!!");
+			} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
+				System.out.print("GAME OVER\nBLACK WINS!!!");
+			} else {
+				System.out.print("GAME OVER\nTIE GAME");
+			}
+			System.out.print("\n\nStatistics:\nTotal Moves: " + (noTurns - 1));
+		}
+		// if game ends to to no possible moves only, then the current player is the
+		// loser.
+		else if (player1.currentToken == BLACK) {
+			System.out.print("GAME OVER\nWHITE WINS!!!");
+			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
+		} else {
+			System.out.print("GAME OVER\nBLACK WINS!!!");
+			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
+		}
+	}
+
+	public void getInputCell() {
+		// if player vs. player
+		if (gameSelection == 1) {
+			getUserInput();
+			if (errorThrown = true) {
+				errorThrown = false;
+				getUserInput();
+			}
+		}
+		// if player vs. cpu
+		else if (gameSelection == 2) {
+			if (noTurns % 2 == 0) {
+				getUserInput();
+				if (errorThrown == true) {
+					errorThrown = false;
+					getUserInput();
+				}
+			} else {
+				getCPULocation();
+			}
+		}
+		// if cpu vs cpu
+		else {
+			getCPULocation();
+		}
+	}
+
+	public void isInputValid() {
+		// If desired cell is occupied, ask user to input again.
+		if (isCellOccupied(inputColumn, inputRow) == true) {
+			// only output text if it is a person playing.
+			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
+				System.out.println("This cell is occupied. Try Again.\n");
+			}
+			errorThrown = true;
+			enterGame();
+		}
+		// If desired cell is not valid, ask user to input again.
+		if (isCellValid(inputColumn, inputRow) == false) {
+			// only output text if it is a person playing.
+			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
+				System.out.println("Cell is not valid. Try again.\n");
+			}
+			errorThrown = true;
+			enterGame();
+		}
+	}
+
+	public void endTurn() {
+		// if the board is not full, then re-enter game for next player.
+		if (noTurns < (BOARD_SIZE * BOARD_SIZE - 3)) {
+			// if next player's move is not possible, switch player.
+			if (isAMovePossible() == false) {
+				player1.switchPlayer();
+				// if next player cant move, then switch player again. They win.
+				if (isAMovePossible() == false) {
+					player1.switchPlayer();
+				}
+				// if only first player can't move, keep going.
+				else {
+					previousMovePassed = true;
+					enterGame();
+				}
+			}
+			// if next player's move is possible, re-enter the game.
+			else {
+				if (gameSelection == 1 || gameSelection == 2) {
+					System.out.println("\nTurn " + noTurns + ":");
+				}
+				enterGame();
+			}
+		}
+	}
 }

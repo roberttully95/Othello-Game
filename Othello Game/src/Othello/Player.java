@@ -26,7 +26,5 @@ public class Player {
 		} else {
 			System.out.println("White's turn.");
 		}
-
 	}
-
 }
