@@ -1,9 +1,12 @@
 package Othello;
 
+import java.util.ArrayList;
+
 // In games 2 and 3, get a stack overflow exception due to random. 
 // (25th call of the random function, 50th element)
 
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -22,7 +25,7 @@ public class Game {
 	int inputRow = 0;
 	int count = 0;
 	int noTurns = 0;
-	boolean shouldIFlip = true;
+	boolean shouldIFlip = false;
 	boolean errorThrown = false;
 	boolean previousMovePassed = false;
 
@@ -45,6 +48,57 @@ public class Game {
 		System.out.println("\nGame Time: " + totalTime / 1000 + " seconds");
 	}
 
+	public void play() {
+
+		initialTextOutput();
+		getGameTypeDecision();
+		initializeBoard();
+		enterGame();
+		postGameOutput();
+
+	}
+
+	public void initialTextOutput() {
+		System.out.println("Welcome to Othello!");
+		System.out.println("This game can be played three ways: ");
+		System.out.println("1. Player vs. Player");
+		System.out.println("2. Player vs. CPU");
+		System.out.println("3. Monte Carlo Simulation\n");
+		System.out.println("Enter 1, 2, or 3 to decide how you want to play.");
+	}
+
+	public void getGameTypeDecision() {
+		gameSelection = getGameInput();
+
+		if (gameSelection == 1) {
+			System.out.println("You chose to play vs. another player.");
+		} else if (gameSelection == 2) {
+			System.out.println("You chose to play vs. the computer.");
+		} else {
+			System.out.println("You chose to run a Monte Carlo simulation, this could take a while..");
+		}
+	}
+
+	/**
+	 * 
+	 * @return Returns the type of game the user wants to play.
+	 */
+	public int getGameInput() {
+		Scanner scan = new Scanner(System.in);
+		try {
+			gameSelection = scan.nextInt();
+			// if user gives input out of range, try again.
+			if (gameSelection > 3 || gameSelection < 1) {
+				System.out.println("\nInput must be 1,2 or 3.");
+				getGameInput();
+			}
+		} catch (InputMismatchException e) {
+			System.out.println("\nI don't know what that was.. but try again. Enter 1, 2 or 3.");
+			getGameInput();
+		}
+		return gameSelection;
+	}
+
 	/**
 	 * Sets initial conditions for the game.
 	 * 
@@ -61,6 +115,9 @@ public class Game {
 		// since the numbers are truncated down for off BOARD_SIZEs.
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2 - 1] = BLACK;
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
+
+		// Output initialized board.
+		currentBoardView();
 	}
 
 	/**
@@ -68,48 +125,58 @@ public class Game {
 	 * 
 	 */
 	public void enterGame() {
-		// if previous move has been passed, let the user know.
-		if (previousMovePassed == true) {
-			previousMovePassed = false;
-			System.out.println("\nNo moves available. Move automatically passed.");
-		}
+		while (isAMovePossible() == true) {
+			// if previous move has been passed, let the user know.
+			if (previousMovePassed == true) {
+				previousMovePassed = false;
+				System.out.println("\nNo moves available. Move automatically passed.");
+			}
 
-		// Output current boards state if no error thrown.
-		// If there is an error, the board is the same as the last.
-		if (gameSelection == 1 || gameSelection == 2) {
+			// outputs current player, as long as error hasn't been thrown.
 			if (errorThrown == false) {
+				if (gameSelection == 1) {
+					player1.outputCurrentPlayer();
+				} else if (gameSelection == 2 && noTurns % 2 == 0) {
+					player1.outputCurrentPlayer();
+				}
+			}
+
+			// get input from player or cpu.
+			getInputCell();
+
+			if (inputWorks(inputColumn, inputRow) == true) {
+				// place token on board.
+				placeToken();
+
+				// output number of turns completed.
+				outputNoTurns();
+
+				// Output current board state, depending on the game type.
 				currentBoardView();
-			} else if (errorThrown == true) {
-				errorThrown = false;
+
+				// switch player
+				player1.switchPlayer();
+
+				// increase number of teams
+				noTurns++;
 			}
 		}
+	}
 
-		// outputs current player.
-		if (gameSelection == 1) {
-			player1.outputCurrentPlayer();
-		} else if (gameSelection == 2) {
-			if (noTurns % 2 == 0) {
-				player1.outputCurrentPlayer();
-			}
+	/**
+	 * Checks whether entered cell is occupied.
+	 * 
+	 * @param column
+	 *            provides the column of the entered data.
+	 * @param row
+	 *            provides the row of the entered data.
+	 */
+	private boolean cellOccupied(int column, int row) {
+		if (board[column][row] != EMPTY) {
+			return true;
+		} else {
+			return false;
 		}
-
-		// get input from player or cpu.
-		getInputCell();
-
-		// check if cell is a valid entry
-		isInputValid();
-
-		// place token on board.
-		placeToken();
-
-		// switch player
-		player1.switchPlayer();
-
-		// increase number of teams
-		noTurns++;
-
-		// end the turn appropriately
-		endTurn();
 	}
 
 	/**
@@ -117,29 +184,35 @@ public class Game {
 	 */
 	public void currentBoardView() {
 
-		System.out.print("   ");
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			System.out.print("| " + (i + 1) + " ");
-		}
-		System.out.print("|\n");
+		if (gameSelection == 1 || gameSelection == 2) {
+			if (errorThrown == false) {
+				System.out.print("   ");
+				for (int i = 0; i < BOARD_SIZE; i++) {
+					System.out.print("| " + (i + 1) + " ");
+				}
+				System.out.print("|\n");
 
-		for (int i = 0; i <= BOARD_SIZE; i++) {
-			System.out.print("----");
-		}
-		System.out.print("\n");
+				for (int i = 0; i <= BOARD_SIZE; i++) {
+					System.out.print("----");
+				}
+				System.out.print("\n");
 
-		for (int i = 0; i < BOARD_SIZE; i++) {
-			System.out.print(" " + (i + 1) + " ");
-			for (int j = 0; j < BOARD_SIZE; j++) {
-				System.out.print("| " + board[j][i] + " ");
-			}
-			System.out.print("|\n");
-			for (int j = 0; j <= BOARD_SIZE; j++) {
-				System.out.print("----");
+				for (int i = 0; i < BOARD_SIZE; i++) {
+					System.out.print(" " + (i + 1) + " ");
+					for (int j = 0; j < BOARD_SIZE; j++) {
+						System.out.print("| " + board[j][i] + " ");
+					}
+					System.out.print("|\n");
+					for (int j = 0; j <= BOARD_SIZE; j++) {
+						System.out.print("----");
+					}
+					System.out.print("\n");
+				}
+			} else if (errorThrown == true) {
+				errorThrown = false;
 			}
 			System.out.print("\n");
 		}
-		System.out.print("\n");
 	}
 
 	/**
@@ -164,22 +237,6 @@ public class Game {
 			System.out.print(
 					"\nYou entered the cell location incorrectly:\nEnter the desired column and row, separated by a space.");
 			errorThrown = true;
-		}
-	}
-
-	/**
-	 * Checks whether entered cell is occupied.
-	 * 
-	 * @param column
-	 *            provides the column of the entered data.
-	 * @param row
-	 *            provides the row of the entered data.
-	 */
-	private boolean isCellOccupied(int column, int row) {
-		if (board[column][row] != EMPTY) {
-			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -268,13 +325,11 @@ public class Game {
 			count = 0;
 			return false;
 		}
-
 		// if adjacent cell is opponent's token.
 		else {
 			count++;
 			return isAdjacentValid(column, row, columnDirection, rowDirection);
 		}
-
 	}
 
 	/**
@@ -304,23 +359,16 @@ public class Game {
 	 * @return boolean
 	 */
 	public boolean isAMovePossible() {
-		// before we enter the isCellValid method, make sure that we do not flip cells
-		// while checking if a move is possible.
-		shouldIFlip = false;
-
 		// go through all cells on the board.
 		for (int r = 0; r < BOARD_SIZE; r++) {
-			for (int c = 0; c < BOARD_SIZE; c++) {
-				// if a single cell is valid, return true.
-				if (isCellValid(c, r) == true) {
+			for (int c = 0; c < BOARD_SIZE; c++) {				
+				// if a single empty cell is valid, return true.
+				if (cellOccupied(c,r) == false && inputCanFlipToken(c, r) == true) {
 					// we can once again flip cells, now that we have checked if a move is possible.
-					shouldIFlip = true;
 					return true;
 				}
 			}
 		}
-		// we can once again flip cells, now that we have checked if a move is possible.
-		shouldIFlip = true;
 		// if no moves are possible, return false.
 		return false;
 	}
@@ -332,59 +380,40 @@ public class Game {
 	 * @param row
 	 * @return boolean determines whether a proposed cell is a valid input
 	 */
-	public boolean isCellValid(int column, int row) {
-		// if we are just checking whether a move is valid, go through all adjacent
-		// cells. If one is valid, return true.
-
-		if (shouldIFlip == false) {
-			if (isCellOccupied(column, row) == true) {
-				return false;
-			}
-			for (int r = -1; r <= 1; r++) {
-				for (int c = -1; c <= 1; c++) {
-					if (isAdjacentValid(column, row, c, r) == true) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		// if we want to flip the cells, we must go through all adjacent cells
+	public boolean inputCanFlipToken(int column, int row) {
+		// To flip the cells, we must go through all adjacent cells
 		// regardless of whether previous cells are valid or not.
 		// If one cell is valid, however, we must know.
-		else {
-			boolean validityCheck = false;
-			if (isAdjacentValid(column, row, -1, -1) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, -1, 0) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, -1, 1) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, 0, -1) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, 0, 1) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, 1, -1) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, 1, 0) == true) {
-				validityCheck = true;
-			}
-			if (isAdjacentValid(column, row, 1, 1) == true) {
-				validityCheck = true;
-			}
+		boolean validityCheck = false;
+		if (isAdjacentValid(column, row, -1, -1) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, -1, 0) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, -1, 1) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, 0, -1) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, 0, 1) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, 1, -1) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, 1, 0) == true) {
+			validityCheck = true;
+		}
+		if (isAdjacentValid(column, row, 1, 1) == true) {
+			validityCheck = true;
+		}
 
-			if (validityCheck == true) {
-				return true;
-			} else {
-				return false;
-			}
+		if (validityCheck == true) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -401,61 +430,7 @@ public class Game {
 		inputRow = rand.nextInt(7);
 	}
 
-	public void play() {
-
-		initialTextOutput();
-		getGameTypeDecision();
-		initializeBoard();
-		enterGame();
-		postGameOutput();
-
-	}
-
-	public void getGameTypeDecision() {
-		gameSelection = getGameInput();
-
-		if (gameSelection == 1) {
-			System.out.println("You chose to play vs. another player.");
-		} else if (gameSelection == 2) {
-			System.out.println("You chose to play vs. the computer.");
-		} else {
-			System.out.println("You chose to run a Monte Carlo simulation, this could take a while..");
-		}
-	}
-
-	/**
-	 * 
-	 * @return Returns the type of game the user wants to play.
-	 */
-	public int getGameInput() {
-		Scanner scan = new Scanner(System.in);
-		try {
-			gameSelection = scan.nextInt();
-			// if user gives input out of range, try again.
-			if (gameSelection > 3 || gameSelection < 1) {
-				System.out.println("\nInput must be 1,2 or 3.");
-				getGameInput();
-			}
-		} catch (InputMismatchException e) {
-			System.out.println("\nI don't know what that was.. but try again. Enter 1, 2 or 3.");
-			getGameInput();
-		}
-		return gameSelection;
-	}
-
-	public void initialTextOutput() {
-		System.out.println("Welcome to Othello!");
-		System.out.println("This game can be played three ways: ");
-		System.out.println("1. Player vs. Player");
-		System.out.println("2. Player vs. CPU");
-		System.out.println("3. Monte Carlo Simulation\n");
-		System.out.println("Enter 1, 2, or 3 to decide how you want to play.");
-	}
-
 	public void postGameOutput() {
-		// outputs final board view
-		currentBoardView();
-
 		// If game ends with no board spaces remaining, count tokens.
 		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 3)) {
 			int countBlack = 0;
@@ -491,7 +466,7 @@ public class Game {
 		// if player vs. player
 		if (gameSelection == 1) {
 			getUserInput();
-			if (errorThrown = true) {
+			if (errorThrown == true) {
 				errorThrown = false;
 				getUserInput();
 			}
@@ -502,7 +477,6 @@ public class Game {
 				getUserInput();
 				if (errorThrown == true) {
 					errorThrown = false;
-					getUserInput();
 				}
 			} else {
 				getCPULocation();
@@ -511,27 +485,6 @@ public class Game {
 		// if cpu vs cpu
 		else {
 			getCPULocation();
-		}
-	}
-
-	public void isInputValid() {
-		// If desired cell is occupied, ask user to input again.
-		if (isCellOccupied(inputColumn, inputRow) == true) {
-			// only output text if it is a person playing.
-			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
-				System.out.println("This cell is occupied. Try Again.\n");
-			}
-			errorThrown = true;
-			enterGame();
-		}
-		// If desired cell is not valid, ask user to input again.
-		if (isCellValid(inputColumn, inputRow) == false) {
-			// only output text if it is a person playing.
-			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
-				System.out.println("Cell is not valid. Try again.\n");
-			}
-			errorThrown = true;
-			enterGame();
 		}
 	}
 
@@ -548,16 +501,43 @@ public class Game {
 				// if only first player can't move, keep going.
 				else {
 					previousMovePassed = true;
-					enterGame();
 				}
 			}
-			// if next player's move is possible, re-enter the game.
-			else {
-				if (gameSelection == 1 || gameSelection == 2) {
-					System.out.println("\nTurn " + noTurns + ":");
-				}
-				enterGame();
+		}
+	}
+
+	public void outputNoTurns() {
+		if (gameSelection == 1 || gameSelection == 2) {
+			System.out.println("\nBoard after move " + (noTurns + 1) + ":");
+		}
+	}
+
+	public boolean inputWorks(int inputColumn, int inputRow) {
+
+		// if cell that user chose is occupied, then the input does not work.
+		if (cellOccupied(inputColumn, inputRow) == true) {
+			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
+				System.out.println("This cell is occupied. Try Again.\n");
 			}
+			errorThrown = true;
+			return false;
+		}
+
+		shouldIFlip = true;
+		// cell is not occupied. is it valid?
+		if (inputCanFlipToken(inputColumn, inputRow) == false) {
+			if (gameSelection == 1 || (gameSelection == 2 && noTurns % 2 == 0)) {
+				System.out.println("Cell is not valid. Try again.\n");
+			}
+			shouldIFlip = false;
+			errorThrown = true;
+			return false;
+		}
+		// cell is not occupied, and it works!
+		else {
+			shouldIFlip = false;
+			errorThrown = false;
+			return true;
 		}
 	}
 }
