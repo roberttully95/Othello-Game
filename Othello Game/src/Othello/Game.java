@@ -1,12 +1,11 @@
 package Othello;
 
-import java.util.ArrayList;
-
-// In games 2 and 3, get a stack overflow exception due to random. 
-// (25th call of the random function, 50th element)
-
+import java.util.Arrays;
+/*TODO 
+ * Implement monte carlo stats.
+ * Determine a way to pick a random VALID cell, rather than any cell.
+ */
 import java.util.InputMismatchException;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -20,17 +19,18 @@ public class Game {
 	final char WHITE = 'W';
 	final char EMPTY = ' ';
 	// initialization of variables
+	int numberOfGames = 1;
 	int gameSelection = 0;
 	int inputColumn = 0;
 	int inputRow = 0;
 	int count = 0;
 	int noTurns = 0;
+	boolean movePassed = false;
 	boolean shouldIFlip = false;
 	boolean errorThrown = false;
-	boolean previousMovePassed = false;
-
 	// declaration of board array
 	private char board[][] = new char[BOARD_SIZE][BOARD_SIZE];
+	int spread[] = new int[numberOfGames - 1];
 
 	/**
 	 * Creates and initiates game.
@@ -49,13 +49,11 @@ public class Game {
 	}
 
 	public void play() {
-
 		initialTextOutput();
 		getGameTypeDecision();
 		initializeBoard();
 		enterGame();
 		postGameOutput();
-
 	}
 
 	public void initialTextOutput() {
@@ -69,7 +67,6 @@ public class Game {
 
 	public void getGameTypeDecision() {
 		gameSelection = getGameInput();
-
 		if (gameSelection == 1) {
 			System.out.println("You chose to play vs. another player.");
 		} else if (gameSelection == 2) {
@@ -110,12 +107,10 @@ public class Game {
 				board[j][i] = EMPTY;
 			}
 		}
-
 		// Hard code 4 initial tokens on to board. Works if BOARD_SIZE is even or odd,
 		// since the numbers are truncated down for off BOARD_SIZEs.
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2 - 1] = BLACK;
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
-
 		// Output initialized board.
 		currentBoardView();
 	}
@@ -125,41 +120,10 @@ public class Game {
 	 * 
 	 */
 	public void enterGame() {
-		while (isAMovePossible() == true) {
-			// if previous move has been passed, let the user know.
-			if (previousMovePassed == true) {
-				previousMovePassed = false;
-				System.out.println("\nNo moves available. Move automatically passed.");
-			}
-
-			// outputs current player, as long as error hasn't been thrown.
-			if (errorThrown == false) {
-				if (gameSelection == 1) {
-					player1.outputCurrentPlayer();
-				} else if (gameSelection == 2 && noTurns % 2 == 0) {
-					player1.outputCurrentPlayer();
-				}
-			}
-
-			// get input from player or cpu.
-			getInputCell();
-
-			if (inputWorks(inputColumn, inputRow) == true) {
-				// place token on board.
-				placeToken();
-
-				// output number of turns completed.
-				outputNoTurns();
-
-				// Output current board state, depending on the game type.
-				currentBoardView();
-
-				// switch player
-				player1.switchPlayer();
-
-				// increase number of teams
-				noTurns++;
-			}
+		if (gameSelection != 3) {
+			singleGame();
+		} else {
+			manyGames();
 		}
 	}
 
@@ -263,47 +227,36 @@ public class Game {
 	 * @return
 	 */
 	public boolean isAdjacentValid(int column, int row, int columnDirection, int rowDirection) {
-
 		// look at cell in a given location.
 		column = column + columnDirection;
 		row = row + rowDirection;
 
+		// return false if location is not on board.
+		if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
+			if (count != 0) {
+				count = 0;
+			}
+			return false;
+		}
+		// return false if adjacent cell is empty.
+		else if (board[column][row] == EMPTY) {
+			if (count != 0) {
+				count = 0;
+			}
+			return false;
+		}
 		// first time round, token must be opponent's.
-		while (count == 0) {
-			// return false if location is not on board.
-			if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
-				return false;
-			}
-
-			// return false if adjacent cell is empty.
-			else if (board[column][row] == EMPTY) {
-				return false;
-			}
-
+		if (count == 0) {
 			// return false if adjacent cell is same as current.
-			else if (board[column][row] == player1.currentToken) {
+			if (board[column][row] == player1.currentToken) {
 				return false;
 			}
-
 			// return true if adjacent cell is opponent's token.
 			else {
 				count++;
 				return isAdjacentValid(column, row, columnDirection, rowDirection);
 			}
 		}
-
-		// return false if location is not on board.
-		if (row >= BOARD_SIZE || row < 0 || column >= BOARD_SIZE || column < 0) {
-			count = 0;
-			return false;
-		}
-
-		// return false if adjacent cell is empty.
-		if (board[column][row] == EMPTY) {
-			count = 0;
-			return false;
-		}
-
 		// if next token is yours, flip intermediate tokens.
 		else if (board[column][row] == player1.currentToken) {
 			// only flip cells during move, and not when checking if a move is possible.
@@ -315,7 +268,6 @@ public class Game {
 				count = 0;
 				return true;
 			}
-
 		}
 
 		// by this point, we know that the token is on the board and contains the
@@ -359,17 +311,32 @@ public class Game {
 	 * @return boolean
 	 */
 	public boolean isAMovePossible() {
-		// go through all cells on the board.
+
+		// Go through all cells on the board for first player.
 		for (int r = 0; r < BOARD_SIZE; r++) {
-			for (int c = 0; c < BOARD_SIZE; c++) {				
+			for (int c = 0; c < BOARD_SIZE; c++) {
 				// if a single empty cell is valid, return true.
-				if (cellOccupied(c,r) == false && inputCanFlipToken(c, r) == true) {
+				if (cellOccupied(c, r) == false && inputCanFlipToken(c, r) == true) {
 					// we can once again flip cells, now that we have checked if a move is possible.
 					return true;
 				}
 			}
 		}
-		// if no moves are possible, return false.
+		// Move not possible for first player. Switch player.
+		player1.switchPlayer();
+
+		// Go through all cells on the board for second player.
+		for (int r = 0; r < BOARD_SIZE; r++) {
+			for (int c = 0; c < BOARD_SIZE; c++) {
+				// if a single empty cell is valid, return true.
+				if (cellOccupied(c, r) == false && inputCanFlipToken(c, r) == true) {
+					// we can once again flip cells, now that we have checked if a move is possible.
+					System.out.print("Move not available. Move automatically passed.");
+					return true;
+				}
+			}
+		}
+		// move not possible for either player. Current player is winner.
 		return false;
 	}
 
@@ -409,7 +376,6 @@ public class Game {
 		if (isAdjacentValid(column, row, 1, 1) == true) {
 			validityCheck = true;
 		}
-
 		if (validityCheck == true) {
 			return true;
 		} else {
@@ -421,18 +387,17 @@ public class Game {
 	 * Generates a random board location for the cpu.
 	 */
 	public void getCPULocation() {
-		// generate instance of random.
-		Random rand = new Random();
-
-		// generate random column location
-		inputColumn = rand.nextInt(7);
-		// generate random row location
-		inputRow = rand.nextInt(7);
+			// generate instance of random.
+			Random rand = new Random();
+			// generate random column location
+			inputColumn = rand.nextInt(7);
+			// generate random row location
+			inputRow = rand.nextInt(7);
 	}
 
 	public void postGameOutput() {
 		// If game ends with no board spaces remaining, count tokens.
-		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 3)) {
+		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 4)) {
 			int countBlack = 0;
 			for (int r = 0; r < BOARD_SIZE; r++) {
 				for (int c = 0; c < BOARD_SIZE; c++) {
@@ -454,10 +419,10 @@ public class Game {
 		// if game ends to to no possible moves only, then the current player is the
 		// loser.
 		else if (player1.currentToken == BLACK) {
-			System.out.print("GAME OVER\nWHITE WINS!!!");
+			System.out.print("GAME OVER\nBLACK WINS!!!");
 			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 		} else {
-			System.out.print("GAME OVER\nBLACK WINS!!!");
+			System.out.print("GAME OVER\nWHITE WINS!!!");
 			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 		}
 	}
@@ -488,24 +453,6 @@ public class Game {
 		}
 	}
 
-	public void endTurn() {
-		// if the board is not full, then re-enter game for next player.
-		if (noTurns < (BOARD_SIZE * BOARD_SIZE - 3)) {
-			// if next player's move is not possible, switch player.
-			if (isAMovePossible() == false) {
-				player1.switchPlayer();
-				// if next player cant move, then switch player again. They win.
-				if (isAMovePossible() == false) {
-					player1.switchPlayer();
-				}
-				// if only first player can't move, keep going.
-				else {
-					previousMovePassed = true;
-				}
-			}
-		}
-	}
-
 	public void outputNoTurns() {
 		if (gameSelection == 1 || gameSelection == 2) {
 			System.out.println("\nBoard after move " + (noTurns + 1) + ":");
@@ -522,7 +469,6 @@ public class Game {
 			errorThrown = true;
 			return false;
 		}
-
 		shouldIFlip = true;
 		// cell is not occupied. is it valid?
 		if (inputCanFlipToken(inputColumn, inputRow) == false) {
@@ -539,5 +485,75 @@ public class Game {
 			errorThrown = false;
 			return true;
 		}
+	}
+
+	public void singleGame() {
+		while (isAMovePossible() == true) {
+			// outputs current player, as long as error hasn't been thrown.
+			if (errorThrown == false) {
+				if (gameSelection == 1) {
+					player1.outputCurrentPlayer();
+				} else if (gameSelection == 2 && noTurns % 2 == 0) {
+					player1.outputCurrentPlayer();
+				}
+			}
+			// get input from player or cpu.
+			getInputCell();
+			// check if input works (cell is not occupied and it can flip cells)
+			if (inputWorks(inputColumn, inputRow) == true) {
+				// place token on board.
+				placeToken();
+				// output number of turns completed.
+				outputNoTurns();
+				// Output current board state, depending on the game type.
+				currentBoardView();
+				// switch player
+				player1.switchPlayer();
+				// increase number of teams
+				noTurns++;
+				System.out.print(noTurns + " ");
+			}
+		}
+	}
+
+	public void manyGames() {
+		// for each game:
+		for (int i = 0; i < numberOfGames; i++) {
+			// execute game
+			singleGame();
+			System.out.print("Game " + (i + 1) + " executed.");
+			// store spread in array
+			spread[i] = spread();
+			// reset board
+			initializeBoard();
+		}
+
+		// all games have been executed.
+		// sort array
+		Arrays.sort(spread);
+		int numberOfOccurences = 1;
+		// if next element is the same as the current, no. occurancs increases
+		for (int i = 0, length = numberOfGames - 1; i < length; i++) {
+			if (spread[i] == spread[i + 1]) {
+				numberOfOccurences++;
+			}
+			// print out the spread, and the number of occurances
+			System.out.print(spread[i] + "," + numberOfOccurences);
+		}
+	}
+
+	public int spread() {
+		int black = 0, white = 0, spread = 0;
+		for (int r = 0; r < BOARD_SIZE; r++) {
+			for (int c = 0; c < BOARD_SIZE; c++) {
+				if (board[c][r] == 'B') {
+					black++;
+				} else if (board[c][r] == 'W') {
+					white++;
+				}
+			}
+		}
+		spread = black - white;
+		return spread;
 	}
 }
