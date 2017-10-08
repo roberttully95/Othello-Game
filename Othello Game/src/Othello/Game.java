@@ -42,6 +42,7 @@ public class Game {
 
 		Game game = new Game();
 		game.play();
+		
 
 		long endTime = System.currentTimeMillis();
 		double totalTime = endTime - startTime;
@@ -397,34 +398,37 @@ public class Game {
 
 	public void postGameOutput() {
 		// If game ends with no board spaces remaining, count tokens.
-		if (noTurns == (BOARD_SIZE * BOARD_SIZE - 4)) {
-			int countBlack = 0;
-			for (int r = 0; r < BOARD_SIZE; r++) {
-				for (int c = 0; c < BOARD_SIZE; c++) {
-					if (board[c][r] == 'B') {
-						countBlack++;
+		if(gameSelection != 3) {
+			if (noTurns == (BOARD_SIZE * BOARD_SIZE - 4)) {
+				int countBlack = 0;
+				for (int r = 0; r < BOARD_SIZE; r++) {
+					for (int c = 0; c < BOARD_SIZE; c++) {
+						if (board[c][r] == 'B') {
+							countBlack++;
+						}
 					}
 				}
+				// the winner is the player with most tokens on the board.
+				if (countBlack < 32) {
+					System.out.print("GAME OVER\nWHITE WINS!!!");
+				} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
+					System.out.print("GAME OVER\nBLACK WINS!!!");
+				} else {
+					System.out.print("GAME OVER\nTIE GAME");
+				}
+				System.out.print("\n\nStatistics:\nTotal Moves: " + (noTurns - 1));
 			}
-			// the winner is the player with most tokens on the board.
-			if (countBlack < 32) {
-				System.out.print("GAME OVER\nWHITE WINS!!!");
-			} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
+			// if game ends to to no possible moves only, then the current player is the
+			// loser.
+			else if (player1.currentToken == BLACK) {
 				System.out.print("GAME OVER\nBLACK WINS!!!");
+				System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 			} else {
-				System.out.print("GAME OVER\nTIE GAME");
+				System.out.print("GAME OVER\nWHITE WINS!!!");
+				System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
 			}
-			System.out.print("\n\nStatistics:\nTotal Moves: " + (noTurns - 1));
 		}
-		// if game ends to to no possible moves only, then the current player is the
-		// loser.
-		else if (player1.currentToken == BLACK) {
-			System.out.print("GAME OVER\nBLACK WINS!!!");
-			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
-		} else {
-			System.out.print("GAME OVER\nWHITE WINS!!!");
-			System.out.print("\n\nStatistics:\nTotal Moves: " + noTurns);
-		}
+		System.out.print("\nGame over!");
 	}
 
 	public void getInputCell() {
