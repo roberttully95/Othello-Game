@@ -3,7 +3,6 @@ package Othello;
 /*
  * TODO:
  * 1. Implement the get data method at the end of the program for the other get data methods.
- * 2. Implement the average spread and standard deviation.
  */
 
 import java.util.Arrays;
@@ -15,6 +14,7 @@ public class Game {
 
 	// creates an instance of the Player Class
 	Player player1 = new Player();
+	Math math = new Math();
 
 	// sets fixed board size.
 	private final int BOARD_SIZE = 8;
@@ -222,6 +222,10 @@ public class Game {
 			}
 		}
 
+		// the following block of code is only for the case in which the developer
+		// wishes to make the board size larger. All they need to do is change the
+		// constant value at the top of the program. This code reformats the board
+		// display so that it aligns correctly.
 		else if (BOARD_SIZE >= 10) {
 			if (gameSelection == 1 || gameSelection == 2) {
 				if (errorThrown == false) {
@@ -668,7 +672,13 @@ public class Game {
 		Arrays.sort(spread);
 
 		// outputs number of occurrences of spread
-		outputNumberOfOccurrences(spread, numberOfGames);
+		numberOfOccurrences(spread, numberOfGames);
+
+		// get average and standard deviation
+		double averageSpread = math.averageOfArray(spread);
+		System.out.println("\nAverage Spread: " + averageSpread);
+		double stdDev = math.standardDeviationOfArray(spread);
+		System.out.print("Standard Deviation of Spread: " + stdDev);
 	}
 
 	public int spread() {
@@ -688,7 +698,7 @@ public class Game {
 		return spread;
 	}
 
-	public void outputNumberOfOccurrences(int[] array, int n) {
+	public void numberOfOccurrences(int[] array, int n) {
 
 		// initialize local variables
 		int[] result = new int[n];
