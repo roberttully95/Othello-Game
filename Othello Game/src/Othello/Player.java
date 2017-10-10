@@ -3,7 +3,7 @@ package Othello;
 public class Player {
 	
 	//first turn is black.
-	char currentToken = 'B';
+	protected char currentToken = 'B';
 	
 	/**
 	 * Switches player and tells the user whose turn it is.
