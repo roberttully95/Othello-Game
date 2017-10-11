@@ -1,10 +1,10 @@
 package Othello;
 
 public class Player {
-	
-	//first turn is black.
+
+	// first turn is black.
 	protected char currentToken = 'B';
-	
+
 	/**
 	 * Switches player and tells the user whose turn it is.
 	 */
@@ -19,12 +19,20 @@ public class Player {
 	/**
 	 * Switches player and tells the user whose turn it is.
 	 */
-	public void outputCurrentPlayer() {
+	public void outputCurrentPlayer(int gameType, int turns) {
 
-		if (currentToken == 'B') {
-			System.out.println("Black's turn.");
-		} else {
-			System.out.println("White's turn.");
+		if (gameType == 1) {
+			if (currentToken == 'B') {
+				System.out.println("Black's Turn.");
+			} else {
+				System.out.println("White's Turn.");
+			}
+		} else if (gameType == 2 && turns % 2 == 0) {
+			if (currentToken == 'B') {
+				System.out.println("Your Turn.");
+			} else {
+				System.out.println("CPU's Turn.");
+			}
 		}
 	}
 }

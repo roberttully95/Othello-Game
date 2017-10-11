@@ -51,7 +51,7 @@ public class Game {
 	public void play() {
 
 		// asks the user what type of game they want to play.
-		initialTextOutput();
+		gameIntro();
 
 		// retrieves, checks, and stores data obtained from user.
 		getGameTypeDecision();
@@ -77,13 +77,13 @@ public class Game {
 
 	}
 
-	public void initialTextOutput() {
+	public void gameIntro() {
 
-		System.out.println("Welcome to Othello!");
+		System.out.println("Welcome to Othello!\n");
 		System.out.println("This game can be played three ways: ");
-		System.out.println("1. Player vs. Player");
-		System.out.println("2. Player vs. CPU");
-		System.out.println("3. Monte Carlo Simulation\n");
+		System.out.println("\t1. Player vs. Player");
+		System.out.println("\t2. Player vs. CPU");
+		System.out.println("\t3. Monte Carlo Simulation\n");
 		System.out.println("Enter 1, 2, or 3 to decide how you want to play.");
 
 	}
@@ -92,15 +92,6 @@ public class Game {
 
 		// assigns game selection input to an integer variable.
 		gameSelection = getGameInput();
-
-		// outputs the user's choice of game.
-		if (gameSelection == 1) {
-			System.out.println("You chose to play vs. another player.");
-		} else if (gameSelection == 2) {
-			System.out.println("You chose to play vs. the computer.");
-		} else {
-			System.out.println("You chose to run a Monte Carlo simulation.");
-		}
 
 	}
 
@@ -280,7 +271,7 @@ public class Game {
 	 */
 	public void getUserInput() {
 		Scanner sc = new Scanner(System.in);
-		System.out.println("Enter the co-ordinates of where you wish to place your token, using the format 'x y':");
+		System.out.println("Enter the co-ordinates, using the following format: x y");
 
 		// if input is entered improperly, error is thrown.
 		try {
@@ -526,9 +517,17 @@ public class Game {
 
 				// the winner is the player with most tokens on the board.
 				if (countBlack < 32) {
-					System.out.print("GAME OVER\nWHITE WINS!");
+					if (gameSelection == 1) {
+						System.out.print("GAME OVER\nWHITE WINS!");
+					} else {
+						System.out.print("GAME OVER\nThe CPU WINS!");
+					}
 				} else if (countBlack > BOARD_SIZE * BOARD_SIZE / 2) {
-					System.out.print("GAME OVER\nBLACK WINS!");
+					if (gameSelection == 1) {
+						System.out.print("GAME OVER\nBLACK WINS!");
+					} else {
+						System.out.print("GAME OVER\nYOU WIN!");
+					}
 				} else {
 					System.out.print("GAME OVER\nTIE GAME");
 				}
@@ -612,14 +611,11 @@ public class Game {
 	public void singleGame() {
 		while (isAMovePossible() == true) {
 
-			// outputs current player, as long as error hasn't been thrown.
+			// outputs current player as long as error hasn't been thrown.
 			if (errorThrown == false) {
-				if (gameSelection == 1) {
-					player1.outputCurrentPlayer();
-				} else if (gameSelection == 2 && noTurns % 2 == 0) {
-					player1.outputCurrentPlayer();
-				}
+				player1.outputCurrentPlayer(gameSelection, noTurns);
 			}
+
 			// gets input from player or cpu.
 			getInputCell();
 
@@ -744,8 +740,8 @@ public class Game {
 		int numberOfGames = -5;
 
 		// prompt user to enter the number of games
-		System.out.println("Enter the number of games you wish to execute for the simulation.");
-		System.out.println("The upper limit has been set to 1 million games.");
+		System.out.println("\nEnter the number of games you wish to execute for the simulation.");
+		System.out.println("Note: The upper limit has been set to 1 million games.");
 
 		// do-while loop
 		do {
