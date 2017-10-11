@@ -139,7 +139,7 @@ public class Game {
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
 
 		// Output initialized board.
-		currentBoardView();
+		currentBoardView(gameSelection);
 
 	}
 
@@ -178,7 +178,7 @@ public class Game {
 	/**
 	 * Outputs the view of the board at the time the call is made.
 	 */
-	public void currentBoardView() {
+	public void currentBoardView(int gameSelection) {
 
 		// does not print out the board if we are in simulation mode.
 		if (BOARD_SIZE < 10) {
@@ -572,7 +572,7 @@ public class Game {
 		}
 	}
 
-	public void outputNoTurns() {
+	public void outputNoTurns(int gameSelection, int noTurns) {
 		if (gameSelection == 1 || gameSelection == 2) {
 			System.out.println("\nBoard after move " + (noTurns + 1) + ":");
 		}
@@ -626,10 +626,10 @@ public class Game {
 				placeToken();
 
 				// output number of turns completed.
-				outputNoTurns();
+				outputNoTurns(gameSelection, noTurns);
 
 				// Output current board state, depending on the game type.
-				currentBoardView();
+				currentBoardView(gameSelection);
 
 				// switch player
 				player1.switchPlayer();

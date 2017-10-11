@@ -28,10 +28,10 @@ public class Math {
 		double average = sum / array.length;
 
 		// rounds to 2 decimal places
-		average = average*100;
+		average = average * 100;
 		average = round(average);
-		average = average/100;
-		
+		average = average / 100;
+
 		return average;
 	}
 
@@ -59,17 +59,17 @@ public class Math {
 			sum = sum + pow(deviationFromMean, 2);
 		}
 
-		double x = sum/(array.length);
-		
+		double x = sum / (array.length);
+
 		// calculates uncorrected standard deviation
 		double standardDeviation = pow(x, 0.5);
-		
+
 		// rounds to 2 decimal places
-		standardDeviation = standardDeviation*100;
+		standardDeviation = standardDeviation * 100;
 		standardDeviation = round(standardDeviation);
-		standardDeviation = standardDeviation/100;
-		
+		standardDeviation = standardDeviation / 100;
+
 		return standardDeviation;
 	}
-	
+
 }
