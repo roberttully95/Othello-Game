@@ -7,6 +7,7 @@ package Othello;
 
 import java.util.Arrays;
 import java.util.InputMismatchException;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -35,6 +36,8 @@ public class Game {
 
 	// declaration of board array
 	private char board[][] = new char[BOARD_SIZE][BOARD_SIZE];
+	LinkedList<Integer> x = new LinkedList<Integer>();
+	LinkedList<Integer> y = new LinkedList<Integer>();
 
 	/**
 	 * Creates and initiates game.
@@ -81,18 +84,31 @@ public class Game {
 
 		System.out.println("Welcome to Othello!\n");
 		System.out.println("This game can be played three ways: ");
-		System.out.println("\t1. Player vs. Player");
-		System.out.println("\t2. Player vs. CPU");
-		System.out.println("\t3. Monte Carlo Simulation\n");
-		System.out.println("Enter 1, 2, or 3 to decide how you want to play.");
+		System.out.println("\t1. Player vs. Player.");
+		System.out.println("\t2. Player vs. CPU.");
+		System.out.println("\t3. Monte Carlo Simulation.\n");
 
 	}
 
 	public void getGameTypeDecision() {
 
-		// assigns game selection input to an integer variable.
-		gameSelection = getGameInput();
+		// if player wants to read rules, re-obtain input.
+		do {
+			// assigns game selection input to an integer variable.
+			gameSelection = getGameInput();
 
+			if (gameSelection == 4) {
+				System.out.println(
+						"\nThe objective of Othello is to flip your opponent's token by flanking their board pieces.");
+				System.out.println("- You can flip multiple tokens in any direction.");
+				System.out.println("- You can flip tokens in multiple directions in a single move.");
+				System.out
+						.println("- The winner of the game is the player with the most tokens at the end of the game.");
+				System.out.println("- The black token always moves first.\\n");
+			}
+
+		} while (gameSelection == 4);
+		// game selection is 1,2 or 3 by this point.
 	}
 
 	/**
@@ -104,12 +120,16 @@ public class Game {
 		// initializes scanner instance to retrieve data.
 		Scanner scan = new Scanner(System.in);
 
+		// prompt player
+		System.out.println("Enter 1, 2, or 3 to decide gameplay mode.");
+		System.out.println("Enter 4 to read the game rules.");
+
 		// try catch block catches exceptions caused by bad input.
 		try {
 			gameSelection = scan.nextInt();
 
 			// if user gives input out of range, try again.
-			if (gameSelection > 3 || gameSelection < 1) {
+			if (gameSelection > 4 || gameSelection < 1) {
 				System.out.println("\nInput must be 1,2 or 3.");
 				getGameInput();
 			}
@@ -139,7 +159,7 @@ public class Game {
 		board[BOARD_SIZE / 2][BOARD_SIZE / 2 - 1] = board[BOARD_SIZE / 2 - 1][BOARD_SIZE / 2] = WHITE;
 
 		// Output initialized board.
-		currentBoardView(gameSelection);
+		currentBoardView(gameSelection, noTurns);
 
 	}
 
@@ -150,6 +170,7 @@ public class Game {
 	public void enterGame() {
 		// determines if a single game or multiple games will be played, based on game
 		// type.
+
 		if (gameSelection != 3) {
 			singleGame();
 		} else {
@@ -178,7 +199,11 @@ public class Game {
 	/**
 	 * Outputs the view of the board at the time the call is made.
 	 */
-	public void currentBoardView(int gameSelection) {
+	public void currentBoardView(int gameSelection, int noTurns) {
+
+		if (noTurns == 0 && gameSelection != 3) {
+			System.out.println("Initial Board.");
+		}
 
 		// does not print out the board if we are in simulation mode.
 		if (BOARD_SIZE < 10) {
@@ -414,12 +439,11 @@ public class Game {
 
 				// if a single empty cell is valid, return true.
 				if (cellOccupied(c, r) == false && inputCanFlipToken(c, r) == true) {
-
-					// we can once again flip cells, now that we have checked if a move is possible.
 					return true;
 				}
 			}
 		}
+
 		// Move not possible for first player. Switch player.
 		player1.switchPlayer();
 
@@ -432,7 +456,11 @@ public class Game {
 
 					// we can once again flip cells, now that we have checked if a move is possible.
 					if (gameSelection != 3) {
-						System.out.println("Move not available. Move automatically passed.");
+						if (gameSelection == 2 & noTurns % 2 == 1) {
+							System.out.println("Move not available for CPU. Move automatically passed.");
+						} else {
+							System.out.println("Move not available. Move automatically passed.");
+						}
 					}
 					return true;
 				}
@@ -629,7 +657,7 @@ public class Game {
 				outputNoTurns(gameSelection, noTurns);
 
 				// Output current board state, depending on the game type.
-				currentBoardView(gameSelection);
+				currentBoardView(gameSelection, noTurns);
 
 				// switch player
 				player1.switchPlayer();
@@ -777,5 +805,6 @@ public class Game {
 
 		return numberOfGames;
 	}
+
 
 } // End of Game Class
